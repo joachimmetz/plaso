@@ -60,6 +60,7 @@ class ESEDBParser(interface.FileObjectParser):
     format_specification.AddNewSignature(b'\xef\xcd\xab\x89', offset=4)
     return format_specification
 
+  # pylint: disable=missing-raises-doc
   def ParseFileObject(self, parser_mediator, file_object):
     """Parses an ESE database file-like object.
 
@@ -79,6 +80,7 @@ class ESEDBParser(interface.FileObjectParser):
 
     # Compare the list of available plugin objects.
     cache = ESEDBCache()
+
     try:
       table_names = frozenset(self._GetTableNames(esedb_file))
 
@@ -89,9 +91,15 @@ class ESEDBParser(interface.FileObjectParser):
         if not plugin.required_tables.issubset(table_names):
           continue
 
+        # pylint: disable=try-except-raise
         try:
           plugin.UpdateChainAndProcess(
               parser_mediator, cache=cache, database=esedb_file)
+
+        # Raise on coding errors.
+        except (AttributeError, ImportError, NameError, TypeError,
+                UnboundLocalError):
+          raise
 
         except Exception as exception:  # pylint: disable=broad-except
           parser_mediator.ProduceExtractionWarning((

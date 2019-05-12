@@ -415,6 +415,7 @@ class SQLiteParser(interface.FileEntryParser):
     format_specification.AddNewSignature(b'SQLite format 3', offset=0)
     return format_specification
 
+  # pylint: disable=missing-raises-doc
   def ParseFileEntry(self, parser_mediator, file_entry):
     """Parses a SQLite database file entry.
 
@@ -464,10 +465,16 @@ class SQLiteParser(interface.FileEntryParser):
         parser_mediator.SetFileEntry(file_entry)
         parser_mediator.AddEventAttribute('schema_match', schema_match)
 
+      # pylint: disable=try-except-raise
         try:
           plugin.UpdateChainAndProcess(
               parser_mediator, cache=cache, database=database,
               database_wal=database_wal, wal_file_entry=wal_file_entry)
+
+        # Raise on coding errors.
+        except (AttributeError, ImportError, NameError, TypeError,
+                UnboundLocalError):
+          raise
 
         except Exception as exception:  # pylint: disable=broad-except
           parser_mediator.ProduceExtractionWarning((
@@ -489,6 +496,11 @@ class SQLiteParser(interface.FileEntryParser):
           plugin.UpdateChainAndProcess(
               parser_mediator, cache=cache, database=database,
               database_wal=database_wal, wal_file_entry=wal_file_entry)
+
+        # Raise on coding errors.
+        except (AttributeError, ImportError, NameError, TypeError,
+                UnboundLocalError):
+          raise
 
         except Exception as exception:  # pylint: disable=broad-except
           parser_mediator.ProduceExtractionWarning((

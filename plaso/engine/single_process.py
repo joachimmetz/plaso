@@ -33,6 +33,7 @@ class SingleProcessEngine(engine.BaseEngine):
     self._processing_configuration = None
     self._status_update_callback = None
 
+  # pylint: disable=missing-raises-doc
   def _ProcessPathSpec(self, extraction_worker, parser_mediator, path_spec):
     """Processes a path specification.
 
@@ -49,9 +50,15 @@ class SingleProcessEngine(engine.BaseEngine):
       excluded_find_specs = (
           self.collection_filters_helper.excluded_file_system_find_specs)
 
+    # pylint: disable=try-except-raise
     try:
       extraction_worker.ProcessPathSpec(
           parser_mediator, path_spec, excluded_find_specs=excluded_find_specs)
+
+    # Raise on coding errors.
+    except (AttributeError, ImportError, NameError, TypeError,
+            UnboundLocalError):
+      raise
 
     except KeyboardInterrupt:
       self._abort = True

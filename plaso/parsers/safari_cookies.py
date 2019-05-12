@@ -113,6 +113,7 @@ class BinaryCookieParser(dtfabric_parser.DtFabricBaseParser):
 
       self._ParseRecord(parser_mediator, page_data, record_offset)
 
+  # pylint: disable=missing-raises-doc
   def _ParseRecord(self, parser_mediator, page_data, record_offset):
     """Parses a record from the page data.
 
@@ -178,10 +179,16 @@ class BinaryCookieParser(dtfabric_parser.DtFabricBaseParser):
       if event_data.cookie_name != plugin.COOKIE_NAME:
         continue
 
+      # pylint: disable=try-except-raise
       try:
         plugin.UpdateChainAndProcess(
             parser_mediator, cookie_name=event_data.cookie_name,
             cookie_data=event_data.cookie_value, url=event_data.url)
+
+      # Raise on coding errors.
+      except (AttributeError, ImportError, NameError, TypeError,
+              UnboundLocalError):
+        raise
 
       except Exception as exception:  # pylint: disable=broad-except
         parser_mediator.ProduceExtractionWarning(

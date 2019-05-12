@@ -168,6 +168,7 @@ class WorkerProcess(base_process.MultiProcessBaseProcess):
 
     self._status = definitions.STATUS_INDICATOR_RUNNING
 
+    # pylint: disable=try-except-raise
     try:
       logger.debug('{0!s} (PID: {1:d}) started monitoring task queue.'.format(
           self._name, self._pid))
@@ -188,6 +189,11 @@ class WorkerProcess(base_process.MultiProcessBaseProcess):
 
       logger.debug('{0!s} (PID: {1:d}) stopped monitoring task queue.'.format(
           self._name, self._pid))
+
+    # Raise on coding errors.
+    except (AttributeError, ImportError, NameError, TypeError,
+            UnboundLocalError):
+      raise
 
     # All exceptions need to be caught here to prevent the process
     # from being killed by an uncaught exception.
@@ -228,6 +234,7 @@ class WorkerProcess(base_process.MultiProcessBaseProcess):
     except errors.QueueAlreadyClosed:
       logger.error('Queue for {0:s} was already closed.'.format(self.name))
 
+  # pylint: disable=missing-raises-doc
   def _ProcessPathSpec(self, extraction_worker, parser_mediator, path_spec):
     """Processes a path specification.
 
@@ -244,9 +251,15 @@ class WorkerProcess(base_process.MultiProcessBaseProcess):
       excluded_find_specs = (
           self._collection_filters_helper.excluded_file_system_find_specs)
 
+    # pylint: disable=try-except-raise
     try:
       extraction_worker.ProcessPathSpec(
           parser_mediator, path_spec, excluded_find_specs=excluded_find_specs)
+
+    # Raise on coding errors.
+    except (AttributeError, ImportError, NameError, TypeError,
+            UnboundLocalError):
+      raise
 
     except dfvfs_errors.CacheFullError:
       # TODO: signal engine of failure.
