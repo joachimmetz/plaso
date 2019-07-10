@@ -47,9 +47,9 @@ class FSEventsdParserTest(test_lib.ParserTestCase):
     self.assertEqual(event_data.flags, 0x01000080)
 
     os_file_entry = path_spec_resolver.Resolver.OpenFileEntry(os_path_spec)
-    expected_time = os_file_entry.modification_time
-    expected_timestamp = expected_time.GetPlasoTimestamp()
-    self.assertEqual(event.timestamp, expected_timestamp)
+    date_time_string = '{0:s}.000000'.format(
+        os_file_entry.modification_time.CopyToDateTimeString())
+    self.CheckTimestamp(event.timestamp, date_time_string)
 
     expected_message = (
         '.Spotlight-V100/Store-V1 '
@@ -87,9 +87,9 @@ class FSEventsdParserTest(test_lib.ParserTestCase):
     self.assertEqual(event_data.flags, 0x01000008)
 
     os_file_entry = path_spec_resolver.Resolver.OpenFileEntry(os_path_spec)
-    expected_time = os_file_entry.modification_time
-    expected_timestamp = expected_time.GetPlasoTimestamp()
-    self.assertEqual(event.timestamp, expected_timestamp)
+    date_time_string = '{0:s}.000000'.format(
+        os_file_entry.modification_time.CopyToDateTimeString())
+    self.CheckTimestamp(event.timestamp, date_time_string)
 
     expected_message = (
         'Hi, Sierra Flag Values: Renamed, IsDirectory '
