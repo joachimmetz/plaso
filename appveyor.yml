@@ -10,19 +10,30 @@ environment:
     PYTHON: "C:\\Python38-x64"
     PYTHON_VERSION: "3.8"
     L2TBINARIES_TRACK: "dev"
+  - TARGET: dockerfile
+    MACHINE_TYPE: "amd64"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    CONTAINER_NAME: "log2timeline/plaso"
 
 install:
-- cmd: '"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 /release'
-- cmd: "%PYTHON%\\python.exe -m pip install -U pip setuptools wheel"
-- cmd: "%PYTHON%\\python.exe -m pip install pywin32 WMI"
-- cmd: "%PYTHON%\\python.exe %PYTHON%\\Scripts\\pywin32_postinstall.py -install"
-- cmd: git clone https://github.com/log2timeline/l2tdevtools.git ..\l2tdevtools
-- cmd: IF [%PYTHON_VERSION%]==[3.8] (
+- cmd: if [%TARGET%]==[unittests] (
+    "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 /release &&
+    "%PYTHON%\\python.exe" -m pip install -U pip setuptools wheel )
+- cmd: if [%PYTHON_VERSION%]==[3.8] (
+    "%PYTHON%\\python.exe" -m pip install pywin32 WMI &&
+    "%PYTHON%\\python.exe" "%PYTHON%\\Scripts\\pywin32_postinstall.py" -install &&
+    git clone https://github.com/log2timeline/l2tdevtools.git ..\l2tdevtools &&
     mkdir dependencies &&
     set PYTHONPATH=..\l2tdevtools &&
     "%PYTHON%\\python.exe" ..\l2tdevtools\tools\update.py --download-directory dependencies --machine-type %MACHINE_TYPE% --msi-targetdir "%PYTHON%" --track "%L2TBINARIES_TRACK%" PyYAML XlsxWriter artifacts bencode certifi cffi chardet cryptography dateutil defusedxml dfdatetime dfvfs dfwinreg dtfabric elasticsearch-py fakeredis future idna libbde libcreg libesedb libevt libevtx libewf libfsapfs libfsext libfsntfs libfvde libfwnt libfwsi liblnk libluksde libmsiecf libolecf libqcow libregf libscca libsigscan libsmdev libsmraw libvhdi libvmdk libvshadow libvslvm lz4 mock pbr pefile psutil pyparsing pytsk3 pytz pyzmq redis requests six sortedcontainers urllib3 yara-python )
+- cmd: if [%TARGET%]==[dockerfile] (
+    docker version &&
+    docker-switch-linux )
 
-build: off
+build_script:
+- cmd: if [%TARGET%]==[dockerfile] (
+    cd config\docker &&
+    docker build --build-arg PPA_TRACK="dev" -f Dockerfile -t "%CONTAINER_NAME%" . )
 
 test_script:
 - cmd: IF [%TARGET%]==[unittests] (
@@ -30,3 +41,6 @@ test_script:
     IF EXIST "tests\\end-to-end.py" (
         set PYTHONPATH=. &&
         "%PYTHON%\\python.exe" "tests\\end-to-end.py" --debug -c "config\\end-to-end.ini" ) )
+- cmd: if [%TARGET%]==[dockerfile] (
+    docker run -v C:\projects\plaso:/data "%CONTAINER_NAME%" log2timeline --status_view linear /data/test.plaso /data/test_data &&
+    docker run -v C:\projects\plaso:/data "%CONTAINER_NAME%" psort --status_view linear -w /data/timeline.log /data/test.plaso )
