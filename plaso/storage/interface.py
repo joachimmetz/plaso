@@ -1208,6 +1208,17 @@ class StorageWriter(object):
       bool: True if the task is ready to be merged.
     """
 
+  def CreateStorageReader(self):
+    """Creates a session storage reader.
+
+    Returns:
+      StorageReader: storage reader for the session store.
+
+    Raises:
+      NotImplementedError: since there is no implementation.
+    """
+    raise NotImplementedError()
+
   # pylint: disable=unused-argument
   def CreateTaskStorage(self, task, task_storage_format):
     """Creates a task store.

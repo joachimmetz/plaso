@@ -456,20 +456,20 @@ class StorageFileWriter(interface.StorageWriter):
   """Defines an interface for a file-backed storage writer."""
 
   def __init__(
-      self, session, output_file,
-      storage_type=definitions.STORAGE_TYPE_SESSION, task=None):
+      self, session, path, storage_type=definitions.STORAGE_TYPE_SESSION,
+      task=None):
     """Initializes a storage writer.
 
     Args:
       session (Session): session the storage changes are part of.
-      output_file (str): path to the output file.
+      path (str): path to the storage file.
       storage_type (Optional[str]): storage type.
       task(Optional[Task]): task.
     """
     super(StorageFileWriter, self).__init__(
         session, storage_type=storage_type, task=task)
     self._merge_task_storage_path = ''
-    self._output_file = output_file
+    self._path = path
     self._processed_task_storage_path = ''
     self._storage_file = None
     self._task_storage_path = None
@@ -912,7 +912,7 @@ class StorageFileWriter(interface.StorageWriter):
     if self._storage_profiler:
       self._storage_file.SetStorageProfiler(self._storage_profiler)
 
-    self._storage_file.Open(path=self._output_file, read_only=False)
+    self._storage_file.Open(path=self._path, read_only=False)
 
     self._first_written_event_source_index = (
         self._storage_file.GetNumberOfEventSources())
@@ -1053,7 +1053,7 @@ class StorageFileWriter(interface.StorageWriter):
     if self._task_storage_path:
       raise IOError('Task storage path already exists.')
 
-    output_directory = os.path.dirname(self._output_file)
+    output_directory = os.path.dirname(self._path)
     self._task_storage_path = tempfile.mkdtemp(dir=output_directory)
 
     self._merge_task_storage_path = os.path.join(

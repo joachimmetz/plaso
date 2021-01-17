@@ -6,6 +6,7 @@ import os
 from plaso.lib import definitions
 from plaso.storage import file_interface
 from plaso.storage.sqlite import merge_reader
+from plaso.storage.sqlite import reader
 from plaso.storage.sqlite import sqlite_file
 from plaso.storage.redis import merge_reader as redis_merge_reader
 from plaso.storage.redis import writer as redis_writer
@@ -14,6 +15,14 @@ from plaso.storage.redis import reader as redis_reader
 
 class SQLiteStorageFileWriter(file_interface.StorageFileWriter):
   """SQLite-based storage file writer."""
+
+  def CreateStorageReader(self):
+    """Creates a session storage reader.
+
+    Returns:
+      StorageReader: storage reader for the session store.
+    """
+    return reader.SQLiteStorageFileReader(self._path)
 
   def CreateTaskStorage(self, task, task_storage_format):
     """Creates a task storage.
@@ -92,10 +101,10 @@ class SQLiteStorageFileWriter(file_interface.StorageFileWriter):
     Returns:
       bool: True if the task is ready to be merged.
     """
-    reader = redis_reader.RedisStorageReader(task)
-    reader.Open()
-    is_ready = reader.IsFinalized()
-    reader.Close()
+    storage_reader = redis_reader.RedisStorageReader(task)
+    storage_reader.Open()
+    is_ready = storage_reader.IsFinalized()
+    storage_reader.Close()
     task.storage_file_size = 1000
     return is_ready
 
